@@ -7,12 +7,14 @@
         ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() == 1) || (data.exists() && (newData.val() == data.val() + 1 || newData.val() == data.val() - 1)))"
       }
     },
-    "wants": {
+    "wantBy": {
       ".read": true,
       "$trip": {
         "$food": {
-          ".write": "$trip.matches(/^[a-z0-9-]+$/) && $food.matches(/^d[0-9]+f[0-9]+$/) && newData.exists()",
-          ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() == 1) || (data.exists() && (newData.val() == data.val() + 1 || newData.val() == data.val() - 1)))"
+          "$name": {
+            ".write": "$trip.matches(/^[a-z0-9-]+$/) && $food.matches(/^d[0-9]+f[0-9]+$/) && $name.length >= 1 && $name.length <= 20",
+            ".validate": "newData.val() == true"
+          }
         }
       }
     }

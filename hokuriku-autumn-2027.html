@@ -140,6 +140,11 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
 .wishlist small{display:block;color:var(--muted)}
 .wishlist .cnt{float:right;color:var(--momiji);font-weight:700;font-variant-numeric:tabular-nums}
 .wishlist .mine{color:var(--momiji)}
+.wishlist .who{color:var(--ink);opacity:.75;margin-top:2px}
+.wishlist .hot{border-color:var(--momiji);background:var(--momiji-soft)}
+.wishmeta{margin:0 0 12px;font-size:.85rem;color:var(--muted)}
+.wishmeta:empty{display:none}
+.rename{background:none;border:none;padding:0;font:inherit;color:var(--momiji);text-decoration:underline;cursor:pointer}
 .reset{margin-top:18px;background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;font-size:.85rem}
 
 @media (prefers-reduced-motion:no-preference){
@@ -169,7 +174,8 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
 
   <section class="wish" aria-labelledby="wishTitle">
     <h2 id="wishTitle">大家的想吃清單</h2>
-    <p id="wishEmpty">在各天的美食卡片按「想吃」，大家想吃的店會整理在這裡，依人數排序。</p>
+    <p id="wishEmpty">在各天的美食卡片按「想吃」，大家想吃的店會整理在這裡，依人數排序。第一次按時會請你輸入名字。</p>
+    <p class="wishmeta" id="wishMeta"></p>
     <ul class="wishlist" id="wishlist"></ul>
     <button class="reset" id="reset">清除我的行程勾選</button>
   </section>
@@ -291,8 +297,9 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
 // store.done（行程勾選）是個人進度，只存這台裝置；store.like 是舊版個人想吃紀錄，已改為下方大家共用的「想吃」，不再使用
 
 /* ---------- 想吃（大家共用，存在 Firebase） ----------
- * 讀寫、即時更新、一台裝置算一人、失敗還原都由共用的 counter.js 處理，這裡只負責畫面。
- * Firebase：/wants/hokuriku-autumn-2027/d{第幾天}f{第幾家} = 想吃人數；這台裝置按過哪幾家記在 hokuriku2027-wants
+ * 讀寫、即時更新、名字管理、失敗還原都由共用的 counter.js（Counter.roster）處理，這裡只負責畫面。
+ * Firebase：/wantBy/hokuriku-autumn-2027/d{第幾天}f{第幾家}/{名字} = true；人數＝名單長度
+ * （舊版只記人數的 /wants 已停用）
  * ⚠️ key 用「第幾天第幾家」的位置編號：之後調整 DAYS 裡美食的順序，人數會跑到別家店上。新增店家請加在該天最後面
  */
 const TRIP_ID="hokuriku-autumn-2027";
@@ -406,18 +413,29 @@ function updateStats(){
   const total=DAYS.reduce((n,d)=>n+d.steps.length,0);
   document.getElementById("stepTotal").textContent=total;
   document.getElementById("doneCount").textContent=Object.keys(store.done).length;
-  document.getElementById("likeCount").textContent=Object.values(wants.counts()).filter(n=>n>0).length;
+  document.getElementById("likeCount").textContent=wants.keys().filter(k=>wants.count(k)>0).length;
 }
 
-// 大家的想吃清單：有人想吃的店，依人數多到少（同人數依行程順序）；自己按過的標 ❤
+/* 🔥 人氣店：想吃的人「超過參與人數的一半」，而且至少 2 人。
+ * 參與人數＝在這一部作品按過任何一家想吃的所有人（不需要另外設定全班人數）。
+ * 至少 2 人是為了避免剛開始只有 1 人參與時，他按的每一家都變成人氣店 */
+const isHot=k=>{const n=wants.count(k); return n>=2 && n>wants.people().length/2;};
+
+// 大家的想吃清單：有人想吃的店，依人數多到少；🔥 人氣店、自己按過的標 ❤、列出想吃的人
 function renderWish(){
   const items=[];
   DAYS.forEach((d,di)=>d.foods.forEach((f,fi)=>{const k=fk(di,fi), n=wants.count(k); if(n>0) items.push({di,f,k,n});}));
   items.sort((a,b)=>b.n-a.n);
   document.getElementById("wishEmpty").hidden=items.length>0;
   document.getElementById("wishlist").innerHTML=items.map(({di,f,k,n})=>
-    `<li><button data-d="${di}"><span class="cnt">${n} 人</span>${wants.has(k)?'<span class="mine" aria-label="我也想吃">❤ </span>':""}${esc(f.name)}<small>Day ${di+1} ${esc(DAYS[di].city)}</small></button></li>`).join("");
+    `<li><button data-d="${di}" class="${isHot(k)?"hot":""}"><span class="cnt">${n} 人</span>${isHot(k)?"🔥 ":""}${wants.has(k)?'<span class="mine" aria-label="我也想吃">❤ </span>':""}${esc(f.name)}<small>Day ${di+1} ${esc(DAYS[di].city)}</small><small class="who">${wants.names(k).map(esc).join("、")}</small></button></li>`).join("");
   document.querySelectorAll("#wishlist button").forEach(b=>b.addEventListener("click",()=>go(+b.dataset.d,true)));
+  const p=wants.people().length, me=Counter.myName();
+  document.getElementById("wishMeta").innerHTML=
+    (p?`目前 ${p} 位同學參與；🔥＝超過一半的人想吃。`:"")+
+    (me?`　你是 <b>${esc(me)}</b>（<button type="button" class="rename" id="rename">改名</button>）`:"");
+  const rn=document.getElementById("rename");
+  if(rn) rn.onclick=()=>{Counter.askName(); refreshWants();};
 }
 
 // 只更新當天美食卡片上的按鈕與人數（不重畫整個面板，別人按讚時畫面不會跳）
@@ -429,12 +447,12 @@ function paintWants(){
     b.setAttribute("aria-pressed",on); b.disabled=wants.busy(k);
     b.querySelector(".lt").textContent=on?"已想吃":"想吃";
     const w=card.querySelector(".wants");
-    w.hidden=n===0; w.textContent=`${n} 人想吃`;
+    w.hidden=n===0; w.textContent=`${isHot(k)?"🔥 ":""}${n} 人想吃：${wants.names(k).join("、")}`;
   });
 }
 const refreshWants=()=>{paintWants(); updateStats(); renderWish();};
 const toggleWant=k=>wants.toggle(k);
-const wants=Counter.group("wants/"+TRIP_ID,"hokuriku2027-wants",refreshWants);
+const wants=Counter.roster("wantBy/"+TRIP_ID,refreshWants);
 
 function go(i,scroll){
   if(i<0||i>=DAYS.length) return;
