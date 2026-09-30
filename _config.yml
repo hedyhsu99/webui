@@ -1,0 +1,5 @@
+# GitHub Pages（Jekyll）設定
+# 開發用檔案不對外發布：否則 CLAUDE.md 會被轉成 /webui/CLAUDE.html 公開頁面
+exclude:
+  - CLAUDE.md
+  - database.rules.json
