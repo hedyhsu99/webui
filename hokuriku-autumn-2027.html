@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2027 秋季 富山・飛驒・金澤 7天6夜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eef0ec; --card:#f8f9f6; --ink:#1f2a36; --muted:#5b6671; --line:#d2d8d1;
+  --momiji:#b3362b; --momiji-soft:#f3dcd7; --gold:#b98f2e; --moss:#4d6a4c; --area:#dfe5dc;
+  --kai:"LXGW WenKai TC","Kaiti TC","BiauKai","DFKai-SB",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141a20; --card:#1b232b; --ink:#e5e9e3; --muted:#9ba6ae; --line:#2c363f;
+    --momiji:#e2654f; --momiji-soft:#3a2522; --gold:#d8b45a; --moss:#90b08c; --area:#1f2a31;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141a20; --card:#1b232b; --ink:#e5e9e3; --muted:#9ba6ae; --line:#2c363f;
+  --momiji:#e2654f; --momiji-soft:#3a2522; --gold:#d8b45a; --moss:#90b08c; --area:#1f2a31;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-text-size-adjust:100%}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--momiji);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+/* Hero */
+.hero{padding:40px 0 8px}
+.hero h1{font-family:var(--kai);font-weight:700;font-size:clamp(2rem,6vw,3.4rem);line-height:1.2;margin:0 0 10px;letter-spacing:.02em}
+.hero p{margin:0;color:var(--muted);max-width:40em}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{border:1px solid var(--line);background:var(--card);padding:4px 12px;border-radius:999px;font-size:.88rem;color:var(--muted)}
+.chip b{color:var(--ink);font-weight:700}
+
+/* Profile */
+.profile{margin:22px 0 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.profile svg{display:block;width:100%;min-width:760px;height:auto}
+.band{fill:transparent;cursor:pointer}
+.band:hover{fill:var(--area);opacity:.55}
+.band.on{fill:var(--momiji-soft);opacity:.8}
+.area{fill:var(--area)}
+.ridge{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round}
+.node{fill:var(--card);stroke:var(--ink);stroke-width:2;pointer-events:none}
+.node.on{fill:var(--momiji);stroke:var(--momiji)}
+.lbl{font-family:var(--sans);font-size:13px;fill:var(--ink);text-anchor:middle;pointer-events:none}
+.alt{font-size:11px;fill:var(--muted)}
+.lbl.on{fill:var(--momiji);font-weight:700}
+.daynum{font-family:var(--kai);font-size:15px;fill:var(--muted);text-anchor:middle;pointer-events:none}
+.daynum.on{fill:var(--momiji);font-weight:700}
+.peak{font-family:var(--kai);font-size:14px;fill:var(--momiji)}
+.hint{font-size:.82rem;color:var(--muted);margin:6px 0 0}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:18px 0 4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:transparent;border-radius:10px;padding:8px 14px;cursor:pointer;text-align:left;line-height:1.3}
+.tab small{display:block;color:var(--muted);font-size:.75rem}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab[aria-selected="true"] small{color:var(--paper);opacity:.75}
+
+/* Day panel */
+.day{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;padding:26px 0 40px}
+@media (max-width:820px){.day{grid-template-columns:1fr;gap:24px}}
+.dayhead{grid-column:1/-1;display:flex;gap:16px;align-items:flex-start}
+.dayhead .emo{font-size:2.4rem;line-height:1}
+.dayhead h2{font-family:var(--kai);font-size:clamp(1.5rem,4vw,2.1rem);margin:0;line-height:1.25}
+.dayhead p{margin:4px 0 0;color:var(--muted)}
+h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
+
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:13px;top:14px;bottom:14px;width:2px;background:var(--line)}
+.step{position:relative;display:grid;grid-template-columns:28px 1fr;gap:14px;padding:0 0 18px}
+.check{width:28px;height:28px;border-radius:50%;border:2px solid var(--ink);background:var(--card);cursor:pointer;display:grid;place-items:center;padding:0;position:relative;z-index:1}
+.check svg{width:14px;height:14px;opacity:0}
+.check[aria-pressed="true"]{background:var(--moss);border-color:var(--moss)}
+.check[aria-pressed="true"] svg{opacity:1}
+.step .t{font-weight:500}
+.step.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--moss)}
+.step .n{font-size:.9rem;color:var(--muted);margin-top:2px}
+.step .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--momiji);margin-right:8px}
+.stay{display:inline-block;margin-top:8px!important;color:var(--ink)!important;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:2px 10px;font-size:.9rem}
+.step .opt{font-size:.75rem;border:1px solid var(--gold);color:var(--gold);border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:2px}
+.maplink{font-size:.82rem;color:var(--muted);text-underline-offset:3px}
+.maplink:hover{color:var(--momiji)}
+
+.tip{margin-top:6px;border-left:3px solid var(--gold);padding:10px 14px;background:var(--card);border-radius:0 8px 8px 0;font-size:.93rem}
+.tip strong{font-family:var(--kai)}
+
+.foods{display:flex;flex-direction:column;gap:14px}
+.food{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;position:relative}
+.food.liked{border-color:var(--momiji)}
+.food h4{margin:0;font-size:1.05rem;padding-right:84px;line-height:1.4}
+.food .jp{color:var(--muted);font-size:.85rem}
+.food p{margin:8px 0 6px;font-size:.93rem}
+.like{position:absolute;top:12px;right:12px;border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 10px 3px 8px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:4px}
+.like svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.like[aria-pressed="true"]{background:var(--momiji);border-color:var(--momiji);color:#fff}
+.like[aria-pressed="true"] svg{fill:currentColor}
+
+.pager{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:18px 0 0;grid-column:1/-1}
+.pager button{background:none;border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+.pager button:disabled{opacity:.35;cursor:default}
+
+/* Wishlist */
+.wish{border-top:2px solid var(--ink);padding:26px 0 56px}
+.wish h2{font-family:var(--kai);margin:0 0 4px;font-size:1.6rem}
+.wish>p{margin:0 0 14px;color:var(--muted)}
+.wishlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.wishlist button{width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.wishlist small{display:block;color:var(--muted)}
+.reset{margin-top:18px;background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;font-size:.85rem}
+
+@media (prefers-reduced-motion:no-preference){
+  .day{animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>富山到金澤，登上三千公尺的紅葉</h1>
+    <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選山稜線上的任一天，查看行程與美食。</p>
+    <div class="stats">
+      <span class="chip">行程完成 <b id="doneCount">0</b> / <b id="stepTotal">0</b></span>
+      <span class="chip">想吃 <b id="likeCount">0</b> 家</span>
+      <span class="chip">紅葉最佳 <b>10 月中旬</b></span>
+    </div>
+  </header>
+
+  <div class="profile" id="profile" aria-label="海拔路線圖"></div>
+  <p class="hint">線條為沿途各站海拔（約略值），手機可左右滑動。</p>
+
+  <nav class="tabs" role="tablist" id="tabs" aria-label="選擇日期"></nav>
+  <main id="panel" role="tabpanel"></main>
+
+  <section class="wish" aria-labelledby="wishTitle">
+    <h2 id="wishTitle">我的想吃清單</h2>
+    <p id="wishEmpty">在各天的美食卡片按「想吃」，這裡會整理成清單。</p>
+    <ul class="wishlist" id="wishlist"></ul>
+    <button class="reset" id="reset">清除所有勾選與想吃紀錄</button>
+  </section>
+</div>
+
+<script>
+const DAYS = [
+ { emo:"🐟", city:"富山・高山", title:"抵達富山，特急直奔高山老街", sub:"白蝦天丼午餐，下午逛小京都",
+   stay:"高山華盛頓飯店",
+   stops:[{name:"富山",alt:10},{name:"高山",alt:573}],
+   steps:[
+     {t:"抵達富山機場，前往富山站", q:"富山空港"},
+     {t:"富山站午餐：白蝦亭白蝦天丼", q:"白えび亭 富山駅"},
+     {t:"搭 JR 特急飛驒號直達高山", n:"約 1.5 小時", q:"富山駅"},
+     {t:"漫步上三之町老街", q:"上三之町 高山"},
+     {t:"參觀高山陣屋", q:"高山陣屋"},
+     {t:"入住高山華盛頓飯店", q:"高山グリーンホテル ワシントン 高山"}
+   ],
+   foods:[
+     {name:"白蝦亭", jp:"白えび亭", d:"位於富山車站內，午餐吃白蝦天丼。富山灣特產白蝦極度鮮甜，被譽為富山灣的寶石。", q:"白えび亭 富山駅"},
+     {name:"味蔵天國 或 丸明", jp:"飛驒牛燒肉", d:"高山頂級飛驒牛燒肉名店，油花如大理石般入口即化，建議預約。", q:"丸明 高山"},
+     {name:"炙燒牛肉握壽司", jp:"飛驒こって牛", d:"老街排隊名店，用大仙貝當盤子，牛肉表面炙燒香氣逼人。", q:"飛騨こって牛"}
+   ]},
+ { emo:"🍂", city:"乘鞍・平湯", title:"乘鞍疊平，挑戰劍峰 3,026m", sub:"滿山紅葉地毯與高山大景，傍晚入住平湯溫泉",
+   stay:"平湯溫泉（深山櫻庵／岡田旅館）",
+   stops:[{name:"乘鞍疊平",alt:2702},{name:"劍峰",alt:3026},{name:"平湯溫泉",alt:1250}],
+   steps:[
+     {time:"07:40",t:"高山搭濃飛巴士出發", q:"高山濃飛バスセンター"},
+     {time:"08:23",t:"抵達朴之木平", q:"ほおのき平バスターミナル"},
+     {time:"08:40",t:"轉乘專用登山巴士", q:"ほおのき平バスターミナル"},
+     {time:"09:25",t:"抵達乘鞍疊平（2,702m）", q:"乗鞍畳平"},
+     {t:"攻頂劍峰（3,026m）", n:"來回約 2.5～3 小時，欣賞紅葉地毯與高山大景", q:"乗鞍岳 剣ヶ峰"},
+     {time:"15:05",t:"搭登山巴士下山轉車", q:"乗鞍畳平"},
+     {time:"16:15",t:"抵達平湯溫泉，入住旅館", q:"平湯温泉"}
+   ],
+   tip:{h:"注意時間",b:"劍峰來回需 2.5～3 小時，下山巴士 15:05 發車，最晚 12 點前要出發攻頂。山頂氣溫低，記得帶保暖衣物。"},
+   foods:[
+     {name:"溫泉旅館晚餐", jp:"飛驒牛朴葉味噌燒", d:"在枯朴葉上放飛驒牛、菇類與在地味噌一起烤，香氣四溢。", q:"平湯温泉 旅館"}
+   ]},
+ { emo:"🏔️", city:"上高地", title:"上高地秋紅葉全景大健行", sub:"順時針一圈，不走回頭路",
+   stay:"平湯溫泉（續住）",
+   stops:[{name:"上高地",alt:1500},{name:"平湯溫泉",alt:1250}],
+   steps:[
+     {time:"06:30",t:"平湯搭首班車直達大正池", n:"約 25 分鐘", q:"平湯温泉 バスターミナル"},
+     {t:"大正池拍晨霧倒影", q:"大正池"},
+     {t:"沿梓川右岸前進", q:"梓川 上高地"},
+     {t:"岳澤濕原", n:"仙氣木棧道", q:"岳沢湿原"},
+     {t:"明神池，在嘉門次小屋吃午餐", n:"炭火烤岩魚", q:"嘉門次小屋"},
+     {t:"跨明神橋，走梓川左岸回河童橋", q:"明神橋"},
+     {t:"五千尺酒店吃蘋果派與霜淇淋", q:"上高地 五千尺ホテル"},
+     {time:"15:00",t:"搭車返回平湯溫泉", n:"隨到隨上，班次密集", q:"上高地バスターミナル"}
+   ],
+   foods:[
+     {name:"嘉門次小屋", jp:"炭火烤岩魚", d:"明神池旁的百年山屋，圍著地爐用炭火慢烤的岩魚，是健行途中的招牌午餐。", q:"嘉門次小屋"},
+     {name:"五千尺酒店", jp:"蘋果派與特濃霜淇淋", d:"就在河童橋旁，健行收尾的甜點補給。", q:"上高地 五千尺ホテル"}
+   ]},
+ { emo:"🚡", city:"新穗高・高山", title:"新穗高雙層纜車，返回高山", sub:"西穗高口展望台 360 度北阿爾卑斯紅葉",
+   stay:"高山華盛頓飯店",
+   stops:[{name:"新穗高",alt:2156},{name:"高山",alt:573}],
+   steps:[
+     {time:"08:40",t:"平湯出發", q:"平湯温泉 バスターミナル"},
+     {time:"09:25",t:"抵達新穗高纜車", q:"新穂高ロープウェイ"},
+     {t:"搭雙層纜車上西穗高口展望台（2,156m）", n:"360 度俯瞰北阿爾卑斯紅葉全景", q:"西穂高口駅"},
+     {time:"12:16",t:"搭直通濃飛巴士下山", n:"12:58 經平湯不下車，直接坐回高山", q:"新穂高ロープウェイ"},
+     {time:"13:48",t:"抵達高山站，回華盛頓飯店領大行李、Check-in", q:"高山グリーンホテル ワシントン 高山"},
+     {t:"漫步高山市區，或順遊飛驒古川", opt:true, q:"飛騨古川"}
+   ],
+   foods:[
+     {name:"割烹大野", jp:"飛驒牛壽喜燒／涮涮鍋", d:"晚餐吃飛驒牛壽喜燒或涮涮鍋。", q:"割烹 大野 高山"}
+   ]},
+ { emo:"🏡", city:"白川鄉・金澤", title:"白川鄉合掌村，直達金澤", sub:"早上朝市散步，車上午睡，傍晚到金澤",
+   stay:"AB Hotel Kanazawa",
+   stops:[{name:"高山",alt:573},{name:"白川鄉",alt:500},{name:"金澤",alt:30}],
+   steps:[
+     {t:"宮川朝市與高山老街散步", q:"宮川朝市"},
+     {t:"高山車站周邊吃在地午餐", q:"高山駅"},
+     {time:"13:20",t:"高山搭濃飛巴士往白川鄉", n:"車上午睡 50 分鐘", q:"高山濃飛バスセンター"},
+     {time:"14:10",t:"漫步荻町合掌村", q:"白川郷 荻町"},
+     {t:"登城山展望台俯瞰秋色茅草屋", q:"城山天守閣展望台 白川郷"},
+     {time:"16:20",t:"白川鄉發車往金澤", q:"白川郷バスターミナル"},
+     {time:"17:35",t:"抵達金澤站西口，步行 1 分鐘入住", n:"大行李直接從巴士底層拉進飯店", q:"ABホテル金沢"},
+     {t:"晚上散步到東茶屋街看夜間點燈", opt:true, q:"ひがし茶屋街"}
+   ],
+   foods:[
+     {name:"黑百合 關東煮", jp:"黒百合", d:"位於金澤車站內。金澤是全日本最愛吃關東煮的地方，必點車麩、梅貝和巨型丸子。", q:"黒百合 金沢駅"}
+   ]},
+ { emo:"🦀", city:"金澤", title:"金澤紅葉、海鮮與採購", sub:"近江町市場、兼六園，下午免稅大採購",
+   stay:"AB Hotel Kanazawa",
+   stops:[{name:"金澤",alt:30}],
+   steps:[
+     {t:"早上近江町市場", q:"近江町市場"},
+     {t:"兼六園與金澤城公園賞楓", n:"看雪吊冬防準備", q:"兼六園"},
+     {t:"金澤車站百番街（Rinto／Anto）免稅採購", q:"金沢百番街"},
+     {t:"Forus 百貨免稅採購", q:"金沢フォーラス"},
+     {t:"晚上回飯店打包", n:"新制免稅不需密封"}
+   ],
+   foods:[
+     {name:"近江町市場 海鮮丼", jp:"豪華海鮮丼", d:"鮭魚卵、海膽、甜蝦多到溢出碗外，痛風級美味。", q:"近江町市場 海鮮丼"},
+     {name:"炙燒紅喉魚", jp:"のどぐろ", d:"北陸的高級白肉魚，炙燒後油脂香甜。", q:"近江町市場 のどぐろ"}
+   ]},
+ { emo:"✈️", city:"小松", title:"小松機場退稅，快樂返台", sub:"機場大巴 40 分鐘",
+   stops:[{name:"小松機場",alt:10}],
+   steps:[
+     {t:"搭機場大巴到小松機場", n:"約 40 分鐘", q:"金沢駅 空港バス"},
+     {t:"抵達後先不要托運行李", q:"小松空港"},
+     {t:"帶免稅品與護照到海關／KIOSK 退稅機台掃描", n:"小松機場人少，查驗速度快"},
+     {t:"確認退稅款", n:"退回信用卡或領現金"},
+     {t:"辦理行李托運"},
+     {t:"搭虎航回台 🎉"}
+   ],
+   foods:[]}
+];
+
+const KEY="hokuriku2027-v2";
+let store={done:{},like:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.done&&s.like) store=s;}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+
+let cur=0;
+const mapURL=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- Elevation profile ---------- */
+function buildProfile(){
+  const W=1000,H=270,pl=40,pr=40,top=58,base=212;
+  const pts=[]; DAYS.forEach((d,di)=>d.stops.forEach(s=>pts.push({...s,di})));
+  const step=(W-pl-pr)/(pts.length-1), maxA=3200;
+  pts.forEach((p,i)=>{p.x=pl+i*step;p.y=base-(p.alt/maxA)*(base-top);});
+  // smooth path (Catmull-Rom → Bezier)
+  let d=`M${pts[0].x},${pts[0].y}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6,c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;
+    d+=` C${c1x},${Math.min(c1y,base)} ${c2x},${Math.min(c2y,base)} ${p2.x},${p2.y}`;
+  }
+  const area=d+` L${pts.at(-1).x},${H-24} L${pts[0].x},${H-24} Z`;
+  let bands="",nums="";
+  DAYS.forEach((_,di)=>{
+    const idx=pts.map((p,i)=>p.di===di?i:-1).filter(i=>i>=0);
+    const a=idx[0],b=idx.at(-1);
+    const x0=a===0?0:(pts[a].x+pts[a-1].x)/2, x1=b===pts.length-1?W:(pts[b].x+pts[b+1].x)/2;
+    bands+=`<rect class="band" data-day="${di}" x="${x0}" y="0" width="${x1-x0}" height="${H}" rx="10"><title>Day ${di+1} ${DAYS[di].city}</title></rect>`;
+    nums+=`<text class="daynum" data-day="${di}" x="${(x0+x1)/2}" y="${H-6}">Day ${di+1}</text>`;
+  });
+  const nodes=pts.map(p=>`<circle class="node" data-day="${p.di}" cx="${p.x}" cy="${p.y}" r="6"/>
+    <text class="lbl" data-day="${p.di}" x="${p.x}" y="${p.y-26}">${p.name}</text>
+    <text class="lbl alt" data-day="${p.di}" x="${p.x}" y="${p.y-12}">${p.alt.toLocaleString()}m</text>`).join("");
+  document.getElementById("profile").innerHTML=
+   `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各站海拔：富山 10 公尺，最高乘鞍岳劍峰 3,026 公尺，最後到小松機場">
+     ${bands}<path class="area" d="${area}"/><path class="ridge" d="${d}"/>
+     <line x1="0" x2="${W}" y1="${H-24}" y2="${H-24}" stroke="var(--line)"/>
+     ${nodes}${nums}</svg>`;
+  document.querySelectorAll(".band").forEach(r=>r.addEventListener("click",()=>go(+r.dataset.day,true)));
+}
+
+/* ---------- Tabs ---------- */
+function buildTabs(){
+  const t=document.getElementById("tabs");
+  t.innerHTML=DAYS.map((d,i)=>`<button class="tab" role="tab" id="tab${i}" aria-controls="panel" data-i="${i}">Day ${i+1}<small>${d.city}</small></button>`).join("");
+  t.addEventListener("click",e=>{const b=e.target.closest(".tab"); if(b) go(+b.dataset.i);});
+  t.addEventListener("keydown",e=>{
+    if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
+      e.preventDefault(); go((cur+(e.key==="ArrowRight"?1:-1)+DAYS.length)%DAYS.length);
+      document.getElementById("tab"+cur).focus();
+    }
+  });
+}
+
+const checkSVG=`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const heartSVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>`;
+
+function renderDay(){
+  const d=DAYS[cur], p=document.getElementById("panel");
+  p.setAttribute("aria-labelledby","tab"+cur);
+  const steps=d.steps.map((s,i)=>{
+    const k=cur+"-"+i, on=!!store.done[k];
+    return `<li class="step${on?" done":""}">
+      <button class="check" data-k="${k}" aria-pressed="${on}" aria-label="標記完成：${esc(s.t)}">${checkSVG}</button>
+      <div><div class="t">${s.time?`<span class="time">${s.time}</span>`:""}${esc(s.t)}${s.opt?'<span class="opt">選配</span>':""}</div>
+      ${s.n?`<div class="n">${esc(s.n)}</div>`:""}
+      ${s.q?`<a class="maplink" href="${mapURL(s.q)}" target="_blank" rel="noopener">在地圖上查看</a>`:""}</div></li>`;
+  }).join("");
+  const foods=d.foods.length?d.foods.map((f,i)=>{
+    const k=cur+"-"+i, on=!!store.like[k];
+    return `<article class="food${on?" liked":""}">
+      <h4>${esc(f.name)}</h4><div class="jp">${esc(f.jp)}</div>
+      <p>${esc(f.d)}</p>
+      <a class="maplink" href="${mapURL(f.q)}" target="_blank" rel="noopener">在地圖上查看</a>
+      <button class="like" data-k="${k}" aria-pressed="${on}">${heartSVG}${on?"已加入":"想吃"}</button></article>`;
+  }).join(""):`<div class="tip"><strong>小松機場退稅的好處</strong><br>機場人少，海關查驗快、幾乎不用排隊。記得先退稅、再托運。</div>`;
+  p.innerHTML=`<section class="day">
+    <div class="dayhead"><div class="emo" aria-hidden="true">${d.emo}</div>
+      <div><h2>Day ${cur+1}　${esc(d.title)}</h2><p>${esc(d.sub)}</p>${d.stay?`<p class="stay">住宿：${esc(d.stay)}</p>`:""}</div></div>
+    <div><h3>行程</h3><ol class="steps">${steps}</ol>
+      ${d.tip?`<div class="tip"><strong>${esc(d.tip.h)}</strong><br>${esc(d.tip.b)}</div>`:""}</div>
+    <div><h3>${d.foods.length?"在地美食":"出發前提醒"}</h3><div class="foods">${foods}</div></div>
+    <div class="pager">
+      <button id="prev" ${cur===0?"disabled":""}>上一天</button>
+      <button id="next" ${cur===DAYS.length-1?"disabled":""}>下一天</button>
+    </div></section>`;
+  p.querySelectorAll(".check").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.k; store.done[k]=!store.done[k]; if(!store.done[k]) delete store.done[k];
+    save(); renderDay(); updateStats(); p.querySelector(`.check[data-k="${k}"]`).focus();
+  }));
+  p.querySelectorAll(".like").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.k; store.like[k]=!store.like[k]; if(!store.like[k]) delete store.like[k];
+    save(); renderDay(); updateStats(); renderWish(); p.querySelector(`.like[data-k="${k}"]`).focus();
+  }));
+  document.getElementById("prev").onclick=()=>go(cur-1,true);
+  document.getElementById("next").onclick=()=>go(cur+1,true);
+}
+
+function highlight(){
+  document.querySelectorAll("[data-day]").forEach(el=>el.classList.toggle("on",+el.dataset.day===cur));
+  document.querySelectorAll(".tab").forEach((t,i)=>{t.setAttribute("aria-selected",i===cur);t.tabIndex=i===cur?0:-1;});
+  document.getElementById("tab"+cur).scrollIntoView({block:"nearest",inline:"nearest"});
+}
+
+function updateStats(){
+  const total=DAYS.reduce((n,d)=>n+d.steps.length,0);
+  document.getElementById("stepTotal").textContent=total;
+  document.getElementById("doneCount").textContent=Object.keys(store.done).length;
+  document.getElementById("likeCount").textContent=Object.keys(store.like).length;
+}
+
+function renderWish(){
+  const items=[];
+  DAYS.forEach((d,di)=>d.foods.forEach((f,fi)=>{if(store.like[di+"-"+fi]) items.push({di,f});}));
+  document.getElementById("wishEmpty").hidden=items.length>0;
+  document.getElementById("wishlist").innerHTML=items.map(({di,f})=>
+    `<li><button data-d="${di}">${esc(f.name)}<small>Day ${di+1} ${esc(DAYS[di].city)}</small></button></li>`).join("");
+  document.querySelectorAll("#wishlist button").forEach(b=>b.addEventListener("click",()=>go(+b.dataset.d,true)));
+}
+
+function go(i,scroll){
+  if(i<0||i>=DAYS.length) return;
+  cur=i; renderDay(); highlight();
+  if(scroll) document.getElementById("tabs").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+}
+
+document.getElementById("reset").addEventListener("click",()=>{
+  if(!confirm("確定要清除所有勾選與想吃紀錄？")) return;
+  store={done:{},like:{}}; save(); renderDay(); updateStats(); renderWish();
+});
+
+buildProfile(); buildTabs(); go(0); updateStats(); renderWish();
+</script>
+</body>
+</html>
