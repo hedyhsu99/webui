@@ -45,6 +45,10 @@ button{font:inherit;color:inherit}
 /* 嵌在首頁（iframe）裡時已經在首頁上，不需要回首頁連結 */
 .embedded .back{display:none}
 .embedded .hero{padding-top:8px}
+/* 首頁頂端有固定的基本資訊列（約 64px），點天數時捲到分頁列要留出這段，不然會被蓋住 */
+.embedded #tabs{scroll-margin-top:76px}
+/* 本機開檔無法自動撐高、只能框內捲動時，捲軸改成細的 */
+html.embedded{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 
 /* Hero */
 .hero{padding:20px 0 8px}
