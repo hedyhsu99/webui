@@ -45,8 +45,9 @@ button{font:inherit;color:inherit}
 /* 嵌在首頁（iframe）裡時已經在首頁上，不需要回首頁連結 */
 .embedded .back{display:none}
 .embedded .hero{padding-top:8px}
-/* 首頁頂端有固定的基本資訊列（約 64px），點天數時捲到分頁列要留出這段，不然會被蓋住 */
-.embedded #tabs{scroll-margin-top:76px}
+/* 點天數時捲到當天內容；嵌在首頁時頂端有固定資訊列（約 64px），要留出這段不然會被蓋住 */
+#panel{scroll-margin-top:8px}
+.embedded #panel{scroll-margin-top:76px}
 /* 本機開檔無法自動撐高、只能框內捲動時，捲軸改成細的 */
 html.embedded{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 
@@ -148,6 +149,7 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
   <header class="hero">
     <h1>富山到金澤，登上三千公尺的紅葉</h1>
     <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選山稜線上的任一天，查看行程與美食。</p>
+    <nav class="tabs" role="tablist" id="tabs" aria-label="選擇日期"></nav>
     <div class="stats">
       <span class="chip">行程完成 <b id="doneCount">0</b> / <b id="stepTotal">0</b></span>
       <span class="chip">想吃 <b id="likeCount">0</b> 家</span>
@@ -158,7 +160,6 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
   <div class="profile" id="profile" aria-label="海拔路線圖"></div>
   <p class="hint">線條為沿途各站海拔（約略值），手機可左右滑動。</p>
 
-  <nav class="tabs" role="tablist" id="tabs" aria-label="選擇日期"></nav>
   <main id="panel" role="tabpanel"></main>
 
   <section class="wish" aria-labelledby="wishTitle">
@@ -323,7 +324,7 @@ function buildProfile(){
 function buildTabs(){
   const t=document.getElementById("tabs");
   t.innerHTML=DAYS.map((d,i)=>`<button class="tab" role="tab" id="tab${i}" aria-controls="panel" data-i="${i}">Day ${i+1}<small>${d.city}</small></button>`).join("");
-  t.addEventListener("click",e=>{const b=e.target.closest(".tab"); if(b) go(+b.dataset.i);});
+  t.addEventListener("click",e=>{const b=e.target.closest(".tab"); if(b) go(+b.dataset.i,true);});   // 分頁列在頁首、內容在海拔圖下方，點了要捲過去才看得到
   t.addEventListener("keydown",e=>{
     if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
       e.preventDefault(); go((cur+(e.key==="ArrowRight"?1:-1)+DAYS.length)%DAYS.length);
@@ -406,7 +407,7 @@ function renderWish(){
 function go(i,scroll){
   if(i<0||i>=DAYS.length) return;
   cur=i; renderDay(); highlight();
-  if(scroll) document.getElementById("tabs").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+  if(scroll) document.getElementById("panel").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
 }
 
 document.getElementById("reset").addEventListener("click",()=>{
