@@ -35,12 +35,12 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .wrap{max-width:1040px;margin:0 auto;padding:0 16px}
 
 .hero{padding:48px 0 28px}
-.hero h1{font-family:var(--kai);font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.2;margin:0 0 8px}
+.hero h1{font-family:var(--kai);font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.2;margin:0}
 .hero p{margin:0;color:var(--muted)}
 
 /* 表格欄位：# ／ 日期 ／ 編劇 ／ 劇本 ／ 上映日 ／ 票房
    表頭與每一列共用同一組欄寬，讓欄位上下對齊 */
-.cols{display:grid;grid-template-columns:40px 96px 80px 1fr 84px 64px;gap:16px;align-items:center}
+.cols{display:grid;grid-template-columns:40px 96px 80px 1fr 84px 84px;gap:16px;align-items:center}
 
 .thead{padding:0 20px 8px;font-size:.8rem;color:var(--muted);letter-spacing:.05em;border-bottom:1px solid var(--line)}
 
@@ -53,8 +53,23 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .no{font-family:var(--kai);font-size:1.3rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .date,.release{font-variant-numeric:tabular-nums;font-size:.92rem}
 .who{font-size:.92rem}
-.box{font-size:.92rem;color:var(--muted);white-space:nowrap}
-.heart{color:var(--momiji)}
+.box{white-space:nowrap}
+.trip{cursor:pointer}
+.plan h2 a{color:inherit;text-decoration:none}
+
+/* 按讚鈕：清單列與頂端資訊列共用 */
+.like{display:inline-flex;align-items:center;gap:5px;min-height:40px;padding:0 12px;
+  font:inherit;font-size:.92rem;font-variant-numeric:tabular-nums;color:var(--muted);
+  background:transparent;border:1px solid var(--line);border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.like .heart{color:var(--momiji);font-size:1.05em;line-height:1}
+.like .heart::before{content:"♡"}
+.like[aria-pressed="true"]{color:var(--momiji);border-color:var(--momiji);background:var(--card)}
+.like[aria-pressed="true"] .heart::before{content:"❤"}
+.like:hover:not(:disabled){border-color:var(--momiji);color:var(--momiji)}
+.like:disabled{cursor:default;opacity:.55}
+.like.pop .heart{animation:pop .35s ease}
+@keyframes pop{40%{transform:scale(1.45)}}
+@media (prefers-reduced-motion:reduce){.like.pop .heart{animation:none}}
 .k{display:none}   /* 欄位名稱：桌面版由表頭顯示，手機版才露出 */
 
 .plan{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;min-width:0}
@@ -119,7 +134,6 @@ footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center
 <main class="wrap">
   <header class="hero">
     <h1>老同學，出發吧！</h1>
-    <p>當年同一間教室，如今約好一起看世界。誰有想去的地方就提案，大家一起挑下一站。</p>
   </header>
 
   <div class="thead cols" aria-hidden="true">
@@ -133,6 +147,7 @@ footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center
         <h2 id="vtitle"></h2>
         <div class="vmeta" id="vmeta"></div>
       </div>
+      <button type="button" class="like" id="vlike" aria-pressed="false"><span class="heart" aria-hidden="true"></span><span class="n">—</span></button>
       <a class="vbtn" id="vopen" target="_blank" rel="noopener" title="在新分頁開啟">↗<span class="lbl">新分頁</span></a>
       <button class="vbtn" type="button" id="vclose" title="收合">✕<span class="lbl">收合</span></button>
     </div>
@@ -151,7 +166,7 @@ footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center
  *   release   上映日：出發日，只知道月份就寫 YYYY-MM，確定日期寫 YYYY-MM-DD
  *   file      劇本：行程頁檔名（與 index.html 放在同一層）
  *   tags      第一個標籤會以金色顯示，建議放季節
- *   票房（按讚數）需要外部資料庫，尚未開放，目前顯示「—」
+ *   票房＝按讚數，存在 Firebase Realtime Database（見下方 LIKES_DB）
  */
 const TRIPS = [
   {
@@ -169,21 +184,23 @@ const TRIPS = [
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const ymd = s => s.replaceAll("-", "/");
-const boxOffice = () => "—";   // 票房接上資料庫後改為實際按讚數
+const likeBtn = no => `<button type="button" class="like" data-like="${no}" aria-pressed="false"><span class="heart" aria-hidden="true"></span><span class="n">—</span></button>`;
 
 // 新作品在最上面
 const sorted = [...TRIPS].sort((a, b) => b.no - a.no);
 
+// 整列可點（展開）；標題是真正的連結，鍵盤 Tab 到標題按 Enter、或 Ctrl＋點擊開新分頁都能用。
+// 按讚鈕不能放在 <a> 裡（互動元素不可巢狀），所以列本身用 <div>
 document.getElementById("list").innerHTML = sorted.map(t => `
   <li>
-    <a class="trip cols" href="${esc(t.file)}" data-no="${t.no}">
+    <div class="trip cols" data-no="${t.no}">
       <span class="no">#${t.no}</span>
       <span class="date">${ymd(esc(t.proposed))}</span>
       <span class="who"><span class="k">編劇</span>${esc(t.writer)}</span>
       <div class="plan">
         <span class="emo" aria-hidden="true">${t.emoji}</span>
         <div>
-          <h2>${esc(t.title)}</h2>
+          <h2><a href="${esc(t.file)}">${esc(t.title)}</a></h2>
           <div class="sub">${esc(t.sub)}</div>
           <div class="tags">
             ${t.tags.map((g, i) => `<span class="tag${i === 0 ? " season" : ""}">${esc(g)}</span>`).join("")}
@@ -191,11 +208,85 @@ document.getElementById("list").innerHTML = sorted.map(t => `
         </div>
       </div>
       <span class="release"><span class="k">上映</span>${ymd(esc(t.release))}</span>
-      <span class="box" title="票房（按讚數）即將開放"><span class="k">票房</span><span class="heart">❤</span> ${boxOffice(t)}</span>
-    </a>
+      <span class="box"><span class="k">票房</span>${likeBtn(t.no)}</span>
+    </div>
   </li>`).join("");
 
 document.getElementById("count").textContent = TRIPS.length;
+
+/*
+ * ── 票房（按讚）──
+ * 資料存在 Firebase Realtime Database，直接打 REST API，不需要載入 Firebase 套件。
+ *   資料形狀：/likes/t1 = 3、/likes/t2 = 0 …（key 加 t 前綴：純數字 key 會被 Firebase 當成陣列回傳）
+ *   加減一：PUT {".sv":{"increment":±1}}，由伺服器原子性地加總，兩人同時按也不會算錯
+ *   即時更新：EventSource 訂閱 /likes，別人按讚時畫面上的數字會自己跳
+ * 「按過了沒」記在這台裝置的 localStorage：同一台裝置一部作品只能讚一次，再按一次＝收回。
+ * 沒有登入，所以換瀏覽器／換裝置就能再按——同學之間的票房，這樣就夠了。
+ * LIKES_DB 留空時按讚鈕停用、顯示「—」，網頁其他功能照常。
+ */
+const LIKES_DB = "";   // 例：https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app
+const LIKED_KEY = "webui-liked";
+
+let counts = {};                       // { t1: 3, ... }
+let liked = new Set();
+try { liked = new Set(JSON.parse(localStorage.getItem(LIKED_KEY) || "[]")); } catch (e) {}
+const saveLiked = () => { try { localStorage.setItem(LIKED_KEY, JSON.stringify([...liked])); } catch (e) {} };
+const busy = new Set();                // 送出中的作品，避免連點
+
+function paintLikes() {
+  document.querySelectorAll("[data-like]").forEach(b => {
+    const key = "t" + b.dataset.like, on = liked.has(key);
+    b.setAttribute("aria-pressed", on);
+    b.querySelector(".n").textContent = LIKES_DB ? (counts[key] || 0) : "—";
+    b.disabled = !LIKES_DB || busy.has(key);
+    b.title = !LIKES_DB ? "票房功能尚未開放" : on ? "收回讚" : "按讚";
+    b.setAttribute("aria-label", `票房 ${b.querySelector(".n").textContent}，${b.title}`);
+  });
+}
+
+async function toggleLike(no) {
+  const key = "t" + no;
+  if (!LIKES_DB || busy.has(key)) return;
+  const on = !liked.has(key), delta = on ? 1 : -1;
+  // 先更新畫面（樂觀更新），失敗再退回
+  on ? liked.add(key) : liked.delete(key);
+  counts[key] = Math.max(0, (counts[key] || 0) + delta);
+  busy.add(key);
+  paintLikes();
+  if (on) document.querySelectorAll(`[data-like="${no}"]`).forEach(b => {
+    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  });
+  try {
+    const r = await fetch(`${LIKES_DB}/likes/${key}.json`, {
+      method: "PUT", body: JSON.stringify({ ".sv": { increment: delta } })
+    });
+    if (!r.ok) throw new Error(r.status);
+    const v = await r.json();
+    if (typeof v === "number") counts[key] = v;   // 以伺服器加總後的值為準
+    saveLiked();
+  } catch (e) {
+    on ? liked.delete(key) : liked.add(key);
+    counts[key] = Math.max(0, (counts[key] || 0) - delta);
+    alert("票房沒有送出，請稍後再試。");
+  } finally {
+    busy.delete(key);
+    paintLikes();
+  }
+}
+
+// 訂閱 /likes：第一次收到全部，之後別人按讚會收到單筆異動
+if (LIKES_DB && "EventSource" in window) {
+  const es = new EventSource(`${LIKES_DB}/likes.json`);
+  const apply = e => {
+    const { path, data } = JSON.parse(e.data);
+    if (path === "/") counts = e.type === "patch" ? { ...counts, ...data } : (data || {});
+    else counts[path.slice(1)] = data;
+    paintLikes();
+  };
+  es.addEventListener("put", apply);
+  es.addEventListener("patch", apply);
+}
+paintLikes();
 
 /*
  * 就地展開：點清單列不換頁，而是把行程頁載入下方的 iframe。
@@ -207,6 +298,7 @@ const frame  = document.getElementById("frame");
 const $title = document.getElementById("vtitle");
 const $meta  = document.getElementById("vmeta");
 const $open  = document.getElementById("vopen");
+const $vlike = document.getElementById("vlike");
 let current = null;   // 目前展開的作品編號
 let sizer = null;     // 監看行程頁高度的 ResizeObserver
 
@@ -226,7 +318,9 @@ function show(no, scroll) {
   if (no !== current) {
     current = no;
     $title.textContent = `${t.emoji} ${t.title}`;
-    $meta.innerHTML = `#${t.no}　編劇 <b>${esc(t.writer)}</b>　上映 <b>${ymd(esc(t.release))}</b>　票房 <b><span class="heart">❤</span> ${boxOffice(t)}</b>`;
+    $meta.innerHTML = `#${t.no}　編劇 <b>${esc(t.writer)}</b>　上映 <b>${ymd(esc(t.release))}</b>`;
+    $vlike.dataset.like = t.no;
+    paintLikes();
     $open.href = t.file;
     frame.classList.remove("ready");
     frame.style.height = "";
@@ -263,9 +357,12 @@ frame.addEventListener("load", () => {
 const fromHash = () => +location.hash.slice(1) || null;
 
 document.getElementById("list").addEventListener("click", e => {
+  const lb = e.target.closest("[data-like]");
+  if (lb) { toggleLike(+lb.dataset.like); return; }   // 按讚不觸發展開
   const a = e.target.closest(".trip");
-  // Ctrl／Shift／中鍵點擊保留瀏覽器原本行為（在新分頁開啟行程頁）
-  if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+  if (!a) return;
+  // 在標題連結上 Ctrl／Shift 點擊：保留瀏覽器原本行為（在新分頁開啟行程頁）
+  if (e.target.closest("a") && (e.ctrlKey || e.metaKey || e.shiftKey)) return;
   e.preventDefault();
   const no = +a.dataset.no;
   if (no === current) {          // 再點一次同一列＝收合
@@ -276,6 +373,8 @@ document.getElementById("list").addEventListener("click", e => {
     show(no, true);
   }
 });
+
+$vlike.addEventListener("click", () => toggleLike(+$vlike.dataset.like));
 
 document.getElementById("vclose").addEventListener("click", () => {
   history.pushState(null, "", location.pathname);
