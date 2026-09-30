@@ -45,9 +45,14 @@ button{font:inherit;color:inherit}
 /* 嵌在首頁（iframe）裡時已經在首頁上，不需要回首頁連結 */
 .embedded .back{display:none}
 .embedded .hero{padding-top:8px}
-/* 點天數時捲到當天內容；嵌在首頁時頂端有固定資訊列（約 64px），要留出這段不然會被蓋住 */
-#panel{scroll-margin-top:8px}
-.embedded #panel{scroll-margin-top:76px}
+/* 從海拔圖、上一天／下一天、想吃清單換天時，捲回分頁列（當天內容緊接在下方）；
+   嵌在首頁時頂端有固定資訊列（約 64px），要留出這段不然會被蓋住 */
+#tabs{scroll-margin-top:0}
+.embedded #tabs{scroll-margin-top:66px}
+/* 路線海拔（放在當天內容下方） */
+.route{border-top:1px solid var(--line);padding:26px 0 8px}
+.route h2{font-family:var(--kai);margin:0;font-size:1.6rem}
+.route .profile{margin-top:8px}
 /* 本機開檔無法自動撐高、只能框內捲動時，捲軸改成細的 */
 html.embedded{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 
@@ -158,8 +163,7 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
   <a class="back" href="./">← 所有行程</a>
   <header class="hero">
     <h1>富山到金澤，登上三千公尺的紅葉</h1>
-    <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選山稜線上的任一天，查看行程與美食。</p>
-    <nav class="tabs" role="tablist" id="tabs" aria-label="選擇日期"></nav>
+    <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選下方的日期，查看每天的行程與美食。</p>
     <div class="stats">
       <span class="chip">行程完成 <b id="doneCount">0</b> / <b id="stepTotal">0</b></span>
       <span class="chip">大家想吃 <b id="likeCount">0</b> 家</span>
@@ -167,10 +171,15 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
     </div>
   </header>
 
-  <div class="profile" id="profile" aria-label="海拔路線圖"></div>
-  <p class="hint">線條為沿途各站海拔（約略值），手機可左右滑動。</p>
-
+  <!-- 分頁緊貼當天內容：點分頁時內容就在正下方，畫面不需要捲動 -->
+  <nav class="tabs" role="tablist" id="tabs" aria-label="選擇日期"></nav>
   <main id="panel" role="tabpanel"></main>
+
+  <section class="route" aria-labelledby="routeTitle">
+    <h2 id="routeTitle">路線海拔</h2>
+    <div class="profile" id="profile" aria-label="海拔路線圖"></div>
+    <p class="hint">線條為沿途各站海拔（約略值），點任一天會跳回上方看當天行程。手機可左右滑動。</p>
+  </section>
 
   <section class="wish" aria-labelledby="wishTitle">
     <h2 id="wishTitle">大家的想吃清單</h2>
@@ -346,7 +355,7 @@ function buildProfile(){
 function buildTabs(){
   const t=document.getElementById("tabs");
   t.innerHTML=DAYS.map((d,i)=>`<button class="tab" role="tab" id="tab${i}" aria-controls="panel" data-i="${i}">Day ${i+1}<small>${d.city}</small></button>`).join("");
-  t.addEventListener("click",e=>{const b=e.target.closest(".tab"); if(b) go(+b.dataset.i,true);});   // 分頁列在頁首、內容在海拔圖下方，點了要捲過去才看得到
+  t.addEventListener("click",e=>{const b=e.target.closest(".tab"); if(b) go(+b.dataset.i);});   // 內容就在分頁正下方，不捲動
   t.addEventListener("keydown",e=>{
     if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
       e.preventDefault(); go((cur+(e.key==="ArrowRight"?1:-1)+DAYS.length)%DAYS.length);
@@ -457,7 +466,7 @@ const wants=Counter.roster("wantBy/"+TRIP_ID,refreshWants);
 function go(i,scroll){
   if(i<0||i>=DAYS.length) return;
   cur=i; renderDay(); highlight();
-  if(scroll) document.getElementById("panel").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+  if(scroll) document.getElementById("tabs").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
 }
 
 document.getElementById("reset").addEventListener("click",()=>{
