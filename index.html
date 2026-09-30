@@ -38,11 +38,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .hero h1{font-family:var(--kai);font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.2;margin:0}
 .hero p{margin:0;color:var(--muted)}
 
-/* 表格欄位：# ／ 日期 ／ 編劇 ／ 劇本 ／ 上映日 ／ 票房
+/* 表格欄位：# ／ 上架日期 ／ 編劇 ／ 劇本 ／ 上映日 ／ 票房
    表頭與每一列共用同一組欄寬，讓欄位上下對齊 */
 .cols{display:grid;grid-template-columns:40px 96px 80px 1fr 84px 84px;gap:16px;align-items:center}
 
-.thead{padding:0 20px 8px;font-size:.8rem;color:var(--muted);letter-spacing:.05em;border-bottom:1px solid var(--line)}
+.thead{padding:0 20px 8px;font-size:.95rem;font-weight:500;color:var(--muted);letter-spacing:.05em;border-bottom:1px solid var(--line)}
 
 .trips{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
 .trip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;
@@ -137,7 +137,7 @@ footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center
   </header>
 
   <div class="thead cols" aria-hidden="true">
-    <span>#</span><span>日期</span><span>編劇</span><span>劇本</span><span>上映日</span><span>票房</span>
+    <span>#</span><span>上架日期</span><span>編劇</span><span>劇本</span><span>上映日</span><span>票房</span>
   </div>
   <ul class="trips" id="list"></ul>
 
@@ -162,7 +162,7 @@ footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center
 /*
  * 作品清單（每一趟旅行＝一部電影）：新增時只要在這裡加一筆，首頁會依編號由新到舊排列。
  *   no        編號（#），新作品接續最大號
- *   proposed  日期：提案日（YYYY-MM-DD）
+ *   proposed  上架日期：提案日（YYYY-MM-DD）
  *   writer    編劇：提案人
  *   release   上映日：出發日，只知道月份就寫 YYYY-MM，確定日期寫 YYYY-MM-DD
  *   file      劇本：行程頁檔名（與 index.html 放在同一層）
