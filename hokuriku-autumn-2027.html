@@ -45,14 +45,10 @@ button{font:inherit;color:inherit}
 /* 嵌在首頁（iframe）裡時已經在首頁上，不需要回首頁連結 */
 .embedded .back{display:none}
 .embedded .hero{padding-top:8px}
-/* 從海拔圖、上一天／下一天、想吃清單換天時，捲回分頁列（當天內容緊接在下方）；
+/* 從上一天／下一天、想吃清單換天時，捲回分頁列（當天內容緊接在下方）；
    嵌在首頁時頂端有固定資訊列（約 64px），要留出這段不然會被蓋住 */
 #tabs{scroll-margin-top:0}
 .embedded #tabs{scroll-margin-top:66px}
-/* 路線海拔（放在當天內容下方） */
-.route{border-top:1px solid var(--line);padding:26px 0 8px}
-.route h2{font-family:var(--kai);margin:0;font-size:1.6rem}
-.route .profile{margin-top:8px}
 /* 本機開檔無法自動撐高、只能框內捲動時，捲軸改成細的 */
 html.embedded{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 
@@ -64,23 +60,19 @@ html.embedded{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .chip{border:1px solid var(--line);background:var(--card);padding:4px 12px;border-radius:999px;font-size:.88rem;color:var(--muted)}
 .chip b{color:var(--ink);font-weight:700}
 
-/* Profile */
-.profile{margin:22px 0 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.profile svg{display:block;width:100%;min-width:760px;height:auto}
+/* 迷你海拔圖（分頁上方）：整張等比縮放、不橫向捲動；站名與海拔在下方 .profcap */
+.profile{margin:20px 0 0}
+.profile svg{display:block;width:100%;height:auto;max-height:130px}
 .band{fill:transparent;cursor:pointer}
 .band:hover{fill:var(--area);opacity:.55}
 .band.on{fill:var(--momiji-soft);opacity:.8}
 .area{fill:var(--area)}
 .ridge{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round}
-.node{fill:var(--card);stroke:var(--ink);stroke-width:2;pointer-events:none}
+.node{fill:var(--card);stroke:var(--ink);stroke-width:1.5;pointer-events:none}
 .node.on{fill:var(--momiji);stroke:var(--momiji)}
-.lbl{font-family:var(--sans);font-size:13px;fill:var(--ink);text-anchor:middle;pointer-events:none}
-.alt{font-size:11px;fill:var(--muted)}
-.lbl.on{fill:var(--momiji);font-weight:700}
-.daynum{font-family:var(--kai);font-size:15px;fill:var(--muted);text-anchor:middle;pointer-events:none}
-.daynum.on{fill:var(--momiji);font-weight:700}
-.peak{font-family:var(--kai);font-size:14px;fill:var(--momiji)}
-.hint{font-size:.82rem;color:var(--muted);margin:6px 0 0}
+.profcap{margin:6px 0 0;font-size:.85rem;color:var(--muted);line-height:1.5}
+.profcap .d{font-family:var(--kai);color:var(--momiji);font-weight:700;margin-right:8px}
+.profcap b{color:var(--ink);font-weight:500}
 
 /* Tabs */
 .tabs{display:flex;gap:6px;overflow-x:auto;padding:18px 0 4px;scrollbar-width:none}
@@ -163,7 +155,7 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
   <a class="back" href="./">← 所有行程</a>
   <header class="hero">
     <h1>富山到金澤，登上三千公尺的紅葉</h1>
-    <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選下方的日期，查看每天的行程與美食。</p>
+    <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選海拔圖或下方的日期，查看每天的行程與美食。</p>
     <div class="stats">
       <span class="chip">行程完成 <b id="doneCount">0</b> / <b id="stepTotal">0</b></span>
       <span class="chip">大家想吃 <b id="likeCount">0</b> 家</span>
@@ -171,15 +163,13 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
     </div>
   </header>
 
+  <!-- 迷你海拔圖：放在分頁上方、當天內容之上，位置不受每天內容長短影響 -->
+  <div class="profile" id="profile" aria-label="海拔路線圖"></div>
+  <p class="profcap" id="profCap"></p>
+
   <!-- 分頁緊貼當天內容：點分頁時內容就在正下方，畫面不需要捲動 -->
   <nav class="tabs" role="tablist" id="tabs" aria-label="選擇日期"></nav>
   <main id="panel" role="tabpanel"></main>
-
-  <section class="route" aria-labelledby="routeTitle">
-    <h2 id="routeTitle">路線海拔</h2>
-    <div class="profile" id="profile" aria-label="海拔路線圖"></div>
-    <p class="hint">線條為沿途各站海拔（約略值），點任一天會跳回上方看當天行程。手機可左右滑動。</p>
-  </section>
 
   <section class="wish" aria-labelledby="wishTitle">
     <h2 id="wishTitle">大家的想吃清單</h2>
@@ -319,8 +309,11 @@ const mapURL=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComp
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* ---------- Elevation profile ---------- */
+/* 迷你版：只畫稜線、各站圓點與可點的每日色帶，SVG 裡不放文字——
+ * SVG 會隨螢幕寬度等比縮放，手機上文字會縮到看不清楚；當天各站名稱與海拔改由下方 #profCap 以 HTML 顯示 */
+let profPts=[];
 function buildProfile(){
-  const W=1000,H=270,pl=40,pr=40,top=58,base=212;
+  const W=1000,H=130,pl=24,pr=24,top=18,base=112;
   const pts=[]; DAYS.forEach((d,di)=>d.stops.forEach(s=>pts.push({...s,di})));
   const step=(W-pl-pr)/(pts.length-1), maxA=3200;
   pts.forEach((p,i)=>{p.x=pl+i*step;p.y=base-(p.alt/maxA)*(base-top);});
@@ -331,24 +324,29 @@ function buildProfile(){
     const c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6,c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;
     d+=` C${c1x},${Math.min(c1y,base)} ${c2x},${Math.min(c2y,base)} ${p2.x},${p2.y}`;
   }
-  const area=d+` L${pts.at(-1).x},${H-24} L${pts[0].x},${H-24} Z`;
-  let bands="",nums="";
+  const area=d+` L${pts.at(-1).x},${H} L${pts[0].x},${H} Z`;
+  let bands="";
   DAYS.forEach((_,di)=>{
     const idx=pts.map((p,i)=>p.di===di?i:-1).filter(i=>i>=0);
     const a=idx[0],b=idx.at(-1);
     const x0=a===0?0:(pts[a].x+pts[a-1].x)/2, x1=b===pts.length-1?W:(pts[b].x+pts[b+1].x)/2;
     bands+=`<rect class="band" data-day="${di}" x="${x0}" y="0" width="${x1-x0}" height="${H}" rx="10"><title>Day ${di+1} ${DAYS[di].city}</title></rect>`;
-    nums+=`<text class="daynum" data-day="${di}" x="${(x0+x1)/2}" y="${H-6}">Day ${di+1}</text>`;
   });
-  const nodes=pts.map(p=>`<circle class="node" data-day="${p.di}" cx="${p.x}" cy="${p.y}" r="6"/>
-    <text class="lbl" data-day="${p.di}" x="${p.x}" y="${p.y-26}">${p.name}</text>
-    <text class="lbl alt" data-day="${p.di}" x="${p.x}" y="${p.y-12}">${p.alt.toLocaleString()}m</text>`).join("");
+  // non-scaling-stroke：線寬不隨 SVG 縮放變細，手機上才看得到
+  const nodes=pts.map(p=>`<circle class="node" data-day="${p.di}" cx="${p.x}" cy="${p.y}" r="8" vector-effect="non-scaling-stroke"><title>${p.name} ${p.alt.toLocaleString()}m</title></circle>`).join("");
   document.getElementById("profile").innerHTML=
    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各站海拔：富山 10 公尺，最高乘鞍岳劍峰 3,026 公尺，最後到小松機場">
-     ${bands}<path class="area" d="${area}"/><path class="ridge" d="${d}"/>
-     <line x1="0" x2="${W}" y1="${H-24}" y2="${H-24}" stroke="var(--line)"/>
-     ${nodes}${nums}</svg>`;
-  document.querySelectorAll(".band").forEach(r=>r.addEventListener("click",()=>go(+r.dataset.day,true)));
+     ${bands}<path class="area" d="${area}"/><path class="ridge" d="${d}" vector-effect="non-scaling-stroke"/>
+     ${nodes}</svg>`;
+  profPts=pts;
+  // 圖就在分頁上方，點了內容就在下方，不需要捲動
+  document.querySelectorAll(".band").forEach(r=>r.addEventListener("click",()=>go(+r.dataset.day)));
+}
+
+// 圖下方的文字：當天經過哪些站、各站海拔
+function paintProfCap(){
+  const s=profPts.filter(p=>p.di===cur).map(p=>`${esc(p.name)} <b>${p.alt.toLocaleString()}m</b>`).join(" → ");
+  document.getElementById("profCap").innerHTML=`<span class="d">Day ${cur+1}</span>${s}`;
 }
 
 /* ---------- Tabs ---------- */
@@ -410,6 +408,7 @@ function renderDay(){
 function highlight(){
   document.querySelectorAll("[data-day]").forEach(el=>el.classList.toggle("on",+el.dataset.day===cur));
   document.querySelectorAll(".tab").forEach((t,i)=>{t.setAttribute("aria-selected",i===cur);t.tabIndex=i===cur?0:-1;});
+  paintProfCap();
   // 只橫向捲動分頁列讓選中的那天露出來；不用 scrollIntoView，
   // 否則嵌在首頁時會連外層頁面一起垂直捲動，載入時畫面亂跳
   const bar=document.getElementById("tabs"), t=document.getElementById("tab"+cur);
