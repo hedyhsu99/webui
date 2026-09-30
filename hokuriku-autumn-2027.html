@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>2027 秋季 富山・飛驒・金澤 7天6夜</title>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -38,8 +39,15 @@ button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--momiji);outline-offset:3px;border-radius:4px}
 .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
 
+/* 回首頁連結 */
+.back{display:inline-block;margin-top:20px;font-size:.9rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--momiji)}
+/* 嵌在首頁（iframe）裡時已經在首頁上，不需要回首頁連結 */
+.embedded .back{display:none}
+.embedded .hero{padding-top:8px}
+
 /* Hero */
-.hero{padding:40px 0 8px}
+.hero{padding:20px 0 8px}
 .hero h1{font-family:var(--kai);font-weight:700;font-size:clamp(2rem,6vw,3.4rem);line-height:1.2;margin:0 0 10px;letter-spacing:.02em}
 .hero p{margin:0;color:var(--muted);max-width:40em}
 .stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
@@ -132,6 +140,7 @@ h3{font-family:var(--kai);font-size:1.2rem;margin:0 0 12px;font-weight:700}
 </head>
 <body>
 <div class="wrap">
+  <a class="back" href="./">← 所有行程</a>
   <header class="hero">
     <h1>富山到金澤，登上三千公尺的紅葉</h1>
     <p>2027 年秋季，7 天 6 夜。從富山出發，經高山登上乘鞍岳劍峰，健行上高地，再經白川鄉到金澤。點選山稜線上的任一天，查看行程與美食。</p>
@@ -366,7 +375,12 @@ function renderDay(){
 function highlight(){
   document.querySelectorAll("[data-day]").forEach(el=>el.classList.toggle("on",+el.dataset.day===cur));
   document.querySelectorAll(".tab").forEach((t,i)=>{t.setAttribute("aria-selected",i===cur);t.tabIndex=i===cur?0:-1;});
-  document.getElementById("tab"+cur).scrollIntoView({block:"nearest",inline:"nearest"});
+  // 只橫向捲動分頁列讓選中的那天露出來；不用 scrollIntoView，
+  // 否則嵌在首頁時會連外層頁面一起垂直捲動，載入時畫面亂跳
+  const bar=document.getElementById("tabs"), t=document.getElementById("tab"+cur);
+  const b=bar.getBoundingClientRect(), r=t.getBoundingClientRect();
+  if(r.left<b.left) bar.scrollLeft-=b.left-r.left+8;
+  else if(r.right>b.right) bar.scrollLeft+=r.right-b.right+8;
 }
 
 function updateStats(){

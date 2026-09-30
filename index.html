@@ -32,32 +32,63 @@
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-text-size-adjust:100%;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 :focus-visible{outline:2px solid var(--momiji);outline-offset:3px;border-radius:6px}
-.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
 
-.hero{padding:48px 0 12px}
+.hero{padding:48px 0 28px}
 .hero h1{font-family:var(--kai);font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.2;margin:0 0 8px}
 .hero p{margin:0;color:var(--muted)}
 
-.year{font-family:var(--kai);font-size:1.3rem;color:var(--muted);margin:32px 0 12px;display:flex;align-items:center;gap:12px}
-.year::after{content:"";flex:1;height:1px;background:var(--line)}
+/* 表格欄位：# ／ 提案時間 ／ 提案人 ／ 行程 ／ 箭頭
+   表頭與每一列共用同一組欄寬，讓欄位上下對齊 */
+.cols{display:grid;grid-template-columns:44px 112px 88px 1fr 28px;gap:16px;align-items:center}
 
-.trips{list-style:none;margin:0;padding:0;display:grid;gap:14px}
-.trip{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
-  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;
+.thead{padding:0 20px 8px;font-size:.8rem;color:var(--muted);letter-spacing:.05em;border-bottom:1px solid var(--line)}
+
+.trips{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
+.trip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;
   text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
 .trip:hover{border-color:var(--momiji);transform:translateY(-2px)}
-.trip .emo{font-size:2.2rem;line-height:1}
-.trip h2{font-family:var(--kai);font-size:1.35rem;margin:0;line-height:1.3}
-.trip .sub{color:var(--muted);font-size:.92rem;margin-top:2px}
+
+.no{font-family:var(--kai);font-size:1.3rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.date{font-variant-numeric:tabular-nums;font-size:.92rem}
+.who{font-size:.92rem}
+
+.plan{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;min-width:0}
+.emo{font-size:2rem;line-height:1}
+.plan h2{font-family:var(--kai);font-size:1.3rem;margin:0;line-height:1.3}
+.sub{color:var(--muted);font-size:.9rem;margin-top:2px}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .tag{font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
 .tag.season{border-color:var(--gold);color:var(--gold)}
-.arrow{color:var(--muted);font-size:1.4rem}
+.arrow{color:var(--muted);font-size:1.3rem;text-align:right}
 .trip:hover .arrow{color:var(--momiji)}
-@media (max-width:520px){
-  .trip{grid-template-columns:auto 1fr;gap:14px;padding:16px}
+
+/* 窄螢幕：不擠成五欄，改成「# · 日期 · 提案人」一行資訊列 + 下方行程 */
+@media (max-width:680px){
+  .thead{display:none}
+  .trip.cols{grid-template-columns:auto auto 1fr;gap:4px 10px;padding:16px}
+  .no{font-size:1rem}
+  .date,.who{font-size:.85rem;color:var(--muted)}
+  .who::before{content:"· ";}
+  .plan{grid-column:1/-1;margin-top:8px}
   .arrow{display:none}
 }
+
+/* 目前展開的那一列 */
+.trip[aria-current="true"]{border-color:var(--momiji);background:var(--momiji-soft)}
+.trip[aria-current="true"] .arrow{color:var(--momiji);transform:rotate(90deg)}
+.arrow{transition:transform .2s}
+
+/* 行程顯示區：索引下方，iframe 載入行程頁 */
+.viewer{margin-top:28px;border-top:1px solid var(--line);scroll-margin-top:8px}
+.viewer[hidden]{display:none}
+.vbar{display:flex;align-items:center;gap:12px;padding:12px 0}
+.vbar h2{font-family:var(--kai);font-size:1.2rem;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vbar a,.vbar button{font:inherit;font-size:.85rem;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.vbar a:hover,.vbar button:hover{color:var(--momiji);border-color:var(--momiji)}
+/* 行程頁本身有左右留白，iframe 抵銷首頁的 16px 留白，避免手機上雙重內縮 */
+.frame{display:block;width:calc(100% + 32px);margin:0 -16px;border:0;height:80vh;opacity:0;transition:opacity .25s}
+.frame.ready{opacity:1}
 
 footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center}
 </style>
@@ -69,59 +100,155 @@ footer{color:var(--muted);font-size:.82rem;padding:40px 0 32px;text-align:center
     <p>每一趟旅程的行程、路線與美食筆記。</p>
   </header>
 
-  <div id="list"></div>
+  <div class="thead cols" aria-hidden="true">
+    <span>#</span><span>提案時間</span><span>提案人</span><span>行程</span><span></span>
+  </div>
+  <ul class="trips" id="list"></ul>
+
+  <section class="viewer" id="viewer" hidden aria-live="polite">
+    <div class="vbar">
+      <h2 id="vtitle"></h2>
+      <a id="vopen" target="_blank" rel="noopener">新分頁開啟 ↗</a>
+      <button type="button" id="vclose">收合 ✕</button>
+    </div>
+    <iframe class="frame" id="frame" title="行程內容"></iframe>
+  </section>
 
   <footer>共 <span id="count">0</span> 趟旅程</footer>
 </main>
 
 <script>
 /*
- * 行程清單：新增行程時只要在這裡加一筆，首頁會自動依年份分組、由新到舊排列。
- *   file   行程頁檔名（與 index.html 放在同一層）
- *   year   分組用的年份
- *   month  同年內排序用（1~12）
+ * 行程清單：新增行程時只要在這裡加一筆，首頁會自動依編號由新到舊排列。
+ *   no        編號（#），新行程接續最大號
+ *   proposed  提案時間（YYYY-MM-DD）
+ *   proposer  提案人
+ *   file      行程頁檔名（與 index.html 放在同一層）
+ *   tags      第一個標籤會以金色顯示，建議放季節
  */
 const TRIPS = [
   {
+    no: 1,
+    proposed: "2026-09-30",
+    proposer: "Hedy",
     file: "hokuriku-autumn-2027.html",
     emoji: "🍁",
     title: "富山・飛驒・金澤",
     sub: "富山 → 高山 → 乘鞍岳 → 上高地 → 白川鄉 → 金澤",
-    year: 2027, month: 10,
-    tags: ["秋季紅葉", "7 天 6 夜", "日本北陸"]
+    tags: ["秋季紅葉", "2027 年 10 月", "7 天 6 夜", "日本北陸"]
   }
 ];
 
-// 由新到舊排序後依年份分組
-const sorted = [...TRIPS].sort((a, b) => b.year - a.year || b.month - a.month);
-const byYear = new Map();
-for (const t of sorted) {
-  if (!byYear.has(t.year)) byYear.set(t.year, []);
-  byYear.get(t.year).push(t);
-}
-
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-document.getElementById("list").innerHTML = [...byYear].map(([year, trips]) => `
-  <h3 class="year">${year}</h3>
-  <ul class="trips">
-    ${trips.map(t => `
-      <li>
-        <a class="trip" href="${esc(t.file)}">
-          <span class="emo" aria-hidden="true">${t.emoji}</span>
-          <div>
-            <h2>${esc(t.title)}</h2>
-            <div class="sub">${esc(t.sub)}</div>
-            <div class="tags">
-              ${t.tags.map((g, i) => `<span class="tag${i === 0 ? " season" : ""}">${esc(g)}</span>`).join("")}
-            </div>
+// 新提案在最上面
+const sorted = [...TRIPS].sort((a, b) => b.no - a.no);
+
+document.getElementById("list").innerHTML = sorted.map(t => `
+  <li>
+    <a class="trip cols" href="${esc(t.file)}" data-no="${t.no}">
+      <span class="no">#${t.no}</span>
+      <span class="date">${esc(t.proposed.replaceAll("-", "/"))}</span>
+      <span class="who">${esc(t.proposer)}</span>
+      <div class="plan">
+        <span class="emo" aria-hidden="true">${t.emoji}</span>
+        <div>
+          <h2>${esc(t.title)}</h2>
+          <div class="sub">${esc(t.sub)}</div>
+          <div class="tags">
+            ${t.tags.map((g, i) => `<span class="tag${i === 0 ? " season" : ""}">${esc(g)}</span>`).join("")}
           </div>
-          <span class="arrow" aria-hidden="true">→</span>
-        </a>
-      </li>`).join("")}
-  </ul>`).join("");
+        </div>
+      </div>
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </li>`).join("");
 
 document.getElementById("count").textContent = TRIPS.length;
+
+/*
+ * 就地展開：點索引列不換頁，而是把行程頁載入下方的 iframe。
+ * 網址用 #編號 記住目前展開哪一趟（例如 #1），重新整理或分享連結都會打開同一趟；
+ * 瀏覽器的上一頁／下一頁也能在「展開 ↔ 收合」之間切換。
+ */
+const viewer = document.getElementById("viewer");
+const frame  = document.getElementById("frame");
+const $title = document.getElementById("vtitle");
+const $open  = document.getElementById("vopen");
+let current = null;   // 目前展開的行程編號
+let sizer = null;     // 監看行程頁高度的 ResizeObserver
+
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function show(no, scroll) {
+  const t = TRIPS.find(x => x.no === no);
+  document.querySelectorAll(".trip").forEach(a =>
+    a.setAttribute("aria-current", t && +a.dataset.no === no ? "true" : "false"));
+
+  if (!t) {   // 收合
+    current = null;
+    viewer.hidden = true;
+    frame.removeAttribute("src");
+    return;
+  }
+  if (no !== current) {
+    current = no;
+    $title.textContent = `#${t.no} ${t.emoji} ${t.title}`;
+    $open.href = t.file;
+    frame.classList.remove("ready");
+    frame.src = t.file;
+  }
+  viewer.hidden = false;
+  if (scroll) viewer.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+}
+
+// iframe 高度跟著行程頁內容走，整頁只有一條捲軸。
+// 本機雙擊開檔（file://）時瀏覽器禁止讀取 iframe 內容，就維持 CSS 的固定 80vh、在框內捲動。
+frame.addEventListener("load", () => {
+  if (sizer) { sizer.disconnect(); sizer = null; }
+  if (!frame.getAttribute("src")) return;
+  try {
+    const body = frame.contentDocument.body;
+    const fit = () => { frame.style.height = body.scrollHeight + "px"; };
+    sizer = new ResizeObserver(fit);
+    sizer.observe(body);
+    fit();
+  } catch (e) {
+    frame.style.height = "";
+  }
+  frame.classList.add("ready");
+});
+
+// 從網址 #編號 決定要展開哪一趟
+const fromHash = () => +location.hash.slice(1) || null;
+
+document.getElementById("list").addEventListener("click", e => {
+  const a = e.target.closest(".trip");
+  // Ctrl／Shift／中鍵點擊保留瀏覽器原本行為（在新分頁開啟行程頁）
+  if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+  e.preventDefault();
+  const no = +a.dataset.no;
+  if (no === current) {          // 再點一次同一列＝收合
+    history.pushState(null, "", location.pathname);
+    show(null);
+  } else {
+    history.pushState(null, "", "#" + no);
+    show(no, true);
+  }
+});
+
+document.getElementById("vclose").addEventListener("click", () => {
+  history.pushState(null, "", location.pathname);
+  show(null);
+  window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+});
+
+// 上一頁／下一頁、手動改網址
+addEventListener("popstate", () => show(fromHash(), false));
+addEventListener("hashchange", () => show(fromHash(), true));
+
+// 開頁時若網址帶 #編號 就直接展開
+if (fromHash()) show(fromHash(), true);
 </script>
 </body>
 </html>
