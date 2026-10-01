@@ -1,0 +1,7 @@
+# 專案規則（含 Firebase 結構、同學名字與內部取捨），repo 公開所以不上傳；只存本機
+CLAUDE.md
+
+# 編輯器 / 系統檔
+.vscode/
+Thumbs.db
+.DS_Store
